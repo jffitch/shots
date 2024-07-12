@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -20,10 +19,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.ParagraphIntrinsics
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -33,8 +29,6 @@ import shots.composeapp.generated.resources.Res
 import shots.composeapp.generated.resources.empty_shot_glass
 import shots.composeapp.generated.resources.full_shot_glass
 import shots.composeapp.generated.resources.shot_tray
-import kotlin.math.PI
-import kotlin.math.cos
 
 @Composable
 @Preview
@@ -80,30 +74,29 @@ fun BoxScope.RenderMain() {
     FlowRow(
         modifier = Modifier.align(Alignment.BottomStart)
     ) {
-        Button(modifier = Modifier.padding(Dp(5f)), onClick = {
-            States.addFullShot()
-        }) {
-            Text(text = "Add Shot")
-        }
-        Button(modifier = Modifier.padding(Dp(5f)), onClick = {
-            States.addEmptyShot()
-        }) {
-            Text(text = "Add Empty Shot")
-        }
-        Button(modifier = Modifier.padding(Dp(5f)), onClick = {
-            States.removeFullShot()
-        }) {
-            Text(text = "Remove Shot")
-        }
-        Button(modifier = Modifier.padding(Dp(5f)), onClick = {
-            States.removeEmptyShot()
-        }) {
-            Text(text = "Remove Empty Shot")
-        }
-        Button(modifier = Modifier.padding(Dp(5f)), onClick = {
-
-        }) {
-            Text(text = "Sell Shots")
+        MainButton.Render()
+    }
+    if (States.shotsBeingSold.value != 0) {
+        Column (modifier = Modifier.align(Alignment.TopStart).offset(x = Dp(5f), y = Dp(5f))) {
+            Row {
+                Text(
+                    text = "$${States.shotsBeingSold.value * Setting.Price.state.value}",
+                    fontSize = TextUnit(40f, TextUnitType.Sp),
+                    fontWeight = FontWeight.Bold
+                )
+                FlowRow {
+                    for (i in 1..States.shotsBeingSold.value) {
+                        Image(
+                            painter = painterResource(Res.drawable.full_shot_glass),
+                            contentDescription = "Full Shot Glass",
+                            modifier = Modifier.scale(2f).padding(Dp(10f)).align(Alignment.CenterVertically)
+                        )
+                    }
+                }
+            }
+            FlowRow {
+                PaymentMethod.Render()
+            }
         }
     }
 }
@@ -112,7 +105,7 @@ fun BoxScope.RenderMain() {
 fun BoxScope.RenderTab() {
     when (Tabs.state.value) {
         Tabs.Main -> RenderMain()
-        Tabs.Stats -> Text("Stats Tab")
+        Tabs.Stats -> RenderStats()
         Tabs.Settings -> Setting.Render()
     }
 }
@@ -141,20 +134,28 @@ fun modifierOffset(i: Int): Modifier {
     val offsetPositions = listOf(
         Pair(-60, -40),
         Pair(60, -40),
-        Pair(-60, 30),
-        Pair(60, 30),
-        Pair(-120, 0),
-        Pair(120, 0),
+        Pair(-120, -15),
+        Pair(120, -15),
         Pair(-90, -25),
         Pair(90, -25),
-        Pair(-20, 10),
-        Pair(20, 10),
+        Pair(-30, 10),
+        Pair(30, 10),
+        Pair(-120, 10),
+        Pair(120, 10),
         Pair(-60, -20),
         Pair(60, -20),
-        Pair(-90, 15),
-        Pair(90, 15),
-        Pair(-20, 35),
-        Pair(20, 35)
+        Pair(0, 15),
+        Pair(-90, 5),
+        Pair(90, 5),
+        Pair(0, 35),
+        Pair(-60, 5),
+        Pair(60, 5),
+        Pair(-30, 30),
+        Pair(30, 30),
+        Pair(-60, 30),
+        Pair(60, 30),
+        Pair(-90, 25),
+        Pair(90, 25)
     )
     if (i < offsetPositions.size) {
         return Modifier.offset(
@@ -163,4 +164,24 @@ fun modifierOffset(i: Int): Modifier {
         )
     }
     return Modifier
+}
+
+@Composable
+fun BoxScope.RenderStats() {
+    val saleStatList = PaymentMethod.entries.map { Sale(0, 0, 0, 0, it) }
+    for (sale in States.sales) {
+        val saleStat = saleStatList.first {it.paymentMethod == sale.paymentMethod}
+        saleStat.price += sale.price
+        saleStat.youKeep += sale.youKeep
+        saleStat.tip += sale.tip
+        saleStat.shots += sale.shots
+    }
+    Column {
+        for (stat in saleStatList) {
+            Text(text = "$${stat.price} total collected using ${stat.paymentMethod.description}")
+            Text(text = "$${stat.youKeep} total base earnings using ${stat.paymentMethod.description}")
+            Text(text = "$${stat.tip} total tips using ${stat.paymentMethod.description}")
+            Text(text = "$${stat.youKeep + stat.tip} total earnings using ${stat.paymentMethod.description}")
+        }
+    }
 }

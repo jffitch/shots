@@ -31,6 +31,10 @@ enum class Setting (
         displayName = "You Keep",
         state = mutableStateOf(1),
         maxConstraint = "Price"
+    ),
+    StartingCash(
+        displayName = "Starting Cash",
+        state = mutableStateOf(0)
     );
 
     fun add() {
