@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.ParagraphIntrinsics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +33,8 @@ import shots.composeapp.generated.resources.Res
 import shots.composeapp.generated.resources.empty_shot_glass
 import shots.composeapp.generated.resources.full_shot_glass
 import shots.composeapp.generated.resources.shot_tray
+import kotlin.math.PI
+import kotlin.math.cos
 
 @Composable
 @Preview
@@ -116,20 +119,48 @@ fun BoxScope.RenderTab() {
 
 @Composable
 fun BoxScope.DisplayShots(full: Int, empty: Int) {
-    Row (verticalAlignment = Alignment.Bottom, modifier = Modifier.align(Alignment.Center)) {
-        for (i in 1..full) {
-            Image(
-                painter = painterResource(Res.drawable.full_shot_glass),
-                contentDescription = "Full Shot Glass",
-                modifier = Modifier.offset(y = Dp(0f)).scale(2f).padding(Dp(5f))
-            )
-        }
-        for (i in 1..empty) {
-            Image(
-                painter = painterResource(Res.drawable.empty_shot_glass),
-                contentDescription = "Empty Shot Glass",
-                modifier = Modifier.offset(y = Dp(0f)).scale(2f).padding(Dp(5f))
-            )
-        }
+    val padding = Dp(10f)
+    val scale = 2f
+    for (i in 0 until full) {
+        Image(
+            painter = painterResource(Res.drawable.full_shot_glass),
+            contentDescription = "Full Shot Glass",
+            modifier = modifierOffset(i).scale(scale).padding(padding).align(Alignment.Center)
+        )
     }
+    for (i in full until empty + full) {
+        Image(
+            painter = painterResource(Res.drawable.empty_shot_glass),
+            contentDescription = "Empty Shot Glass",
+            modifier = modifierOffset(i).scale(scale).padding(padding).align(Alignment.Center)
+        )
+    }
+}
+
+fun modifierOffset(i: Int): Modifier {
+    val offsetPositions = listOf(
+        Pair(-60, -40),
+        Pair(60, -40),
+        Pair(-60, 30),
+        Pair(60, 30),
+        Pair(-120, 0),
+        Pair(120, 0),
+        Pair(-90, -25),
+        Pair(90, -25),
+        Pair(-20, 10),
+        Pair(20, 10),
+        Pair(-60, -20),
+        Pair(60, -20),
+        Pair(-90, 15),
+        Pair(90, 15),
+        Pair(-20, 35),
+        Pair(20, 35)
+    )
+    if (i < offsetPositions.size) {
+        return Modifier.offset(
+            x = Dp(offsetPositions[i].first.toFloat()),
+            y = Dp(offsetPositions[i].second.toFloat())
+        )
+    }
+    return Modifier
 }
